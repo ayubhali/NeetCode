@@ -3,6 +3,9 @@ import subprocess
 import questionary  # For interactive selection
 from pathlib import Path
 
+# Define your GitHub username
+GITHUB_USERNAME = "ayubhali"
+
 # Define project paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
 NEETCODE_DIR = ROOT_DIR / "NeetCode"
@@ -57,21 +60,44 @@ def move_solution():
         print("✅ File moved successfully!\n")
 
         # Update README
-        update_readme(file_name.replace(".py", ""), topic)
+        update_readme()
 
     return True, True  # Placeholder return to signal changes were made
 
-def update_readme(problem_name, topic):
-    """Update README with solved problems."""
-    if problem_name is None:
-        return
+def update_readme():
+    """Generate a structured README with topics as columns."""
+    print("📝 Rebuilding README.md...\n")
 
-    print("📝 Updating README.md...")
-    with open(README_FILE, 'a') as f:
-        github_url = f"https://github.com/yourusername/NeetCode/{topic}/{problem_name}.py"
-        f.write(f"- [{problem_name}]({github_url}) - **Topic:** {topic}\n")
+    problem_dict = {topic: [] for topic in TOPIC_FOLDERS}
 
-    print("✅ README.md updated.\n")
+    # Scan all topics and collect problem names
+    for topic in TOPIC_FOLDERS:
+        topic_folder = NEETCODE_DIR / topic
+        if topic_folder.exists():
+            for py_file in sorted(topic_folder.glob("*.py")):
+                problem_name = py_file.stem  # Remove .py extension
+                github_url = f"https://github.com/{GITHUB_USERNAME}/NeetCode/blob/main/{topic}/{py_file.name}"
+                problem_dict[topic].append(f"[{problem_name}]({github_url})")
+
+    # Create a Markdown table
+    max_problems = max(len(problems) for problems in problem_dict.values())  # Find max row count
+
+    with open(README_FILE, "w") as f:
+        f.write("# NeetCode Problem Solutions\n\n")
+        f.write(f"Solutions to NeetCode problems by [{GITHUB_USERNAME}](https://github.com/{GITHUB_USERNAME}).\n\n")
+
+        # Table header
+        f.write("| " + " | ".join(TOPIC_FOLDERS) + " |\n")
+        f.write("|" + " --- |" * len(TOPIC_FOLDERS) + "\n")
+
+        # Fill the table row by row
+        for i in range(max_problems):
+            row = []
+            for topic in TOPIC_FOLDERS:
+                row.append(problem_dict[topic][i] if i < len(problem_dict[topic]) else "")  # Fill empty spaces
+            f.write("| " + " | ".join(row) + " |\n")
+
+    print("✅ README.md updated with a structured table.\n")
 
 def git_operations():
     """Perform Git add, commit, and push."""
