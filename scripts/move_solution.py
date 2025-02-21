@@ -107,7 +107,7 @@ def git_operations():
     # Check if there are changes to commit
     status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
     if not status.stdout.strip():
-        print("ℹ️ No changes to commit.\n")
+        print("ℹ️  No changes to commit.\n")
         return
 
     subprocess.run(["git", "commit", "-m", "Auto update of solved problems"], check=True)
